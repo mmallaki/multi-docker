@@ -1,0 +1,22 @@
+sudo: requiered
+services:
+  - docker
+
+before_install:
+  - docker build -t mmallaki13/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true mmallaki13/react-test npm test
+
+after_success:
+  - docker build -t mmallaki13/multi-client ./client
+  - docker build -t mmallaki13/multi-nginx ./nginx
+  - docker build -t mmallaki13/multi-server ./server
+  - docker build -t mmallaki13/multi-worker ./worker
+  # Log in to the Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Push images to Docker Hub
+  - docker push mmallaki13/multi-client
+  - docker push mmallaki13/multi-nginx
+  - docker push mmallaki13/multi-server
+  - docker push mmallaki13/multi-worker
